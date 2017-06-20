@@ -285,17 +285,45 @@ func (e *encodeState) error(err error) {
 	panic(err)
 }
 
-func isEmptyValue(v reflect.Value) bool {
+func isEmptyValue(v reflect.Value, fieldName string, fieldAlias ...map[string]string) bool {
 	switch v.Kind() {
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
 		return v.Len() == 0
 	case reflect.Bool:
+		if len(fieldAlias) > 0 {
+			tmpFieldAlias := fieldAlias[0]
+			_, ok := tmpFieldAlias[fieldName]
+			if ok {
+				return false
+			}
+		}
 		return !v.Bool()
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if len(fieldAlias) > 0 {
+			tmpFieldAlias := fieldAlias[0]
+			_, ok := tmpFieldAlias[fieldName]
+			if ok {
+				return false
+			}
+		}
 		return v.Int() == 0
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		if len(fieldAlias) > 0 {
+			tmpFieldAlias := fieldAlias[0]
+			_, ok := tmpFieldAlias[fieldName]
+			if ok {
+				return false
+			}
+		}
 		return v.Uint() == 0
 	case reflect.Float32, reflect.Float64:
+		if len(fieldAlias) > 0 {
+			tmpFieldAlias := fieldAlias[0]
+			_, ok := tmpFieldAlias[fieldName]
+			if ok {
+				return false
+			}
+		}
 		return v.Float() == 0
 	case reflect.Interface, reflect.Ptr:
 		return v.IsNil()
@@ -588,7 +616,7 @@ func (se *structEncoder) encode(e *encodeState, v reflect.Value, opts encOpts, f
 	first := true
 	for i, f := range se.fields {
 		fv := fieldByIndex(v, f.index)
-		if !fv.IsValid() || f.omitEmpty && isEmptyValue(fv) {
+		if !fv.IsValid() || f.omitEmpty && isEmptyValue(fv, f.name, fieldAlias...) {
 			continue
 		}
 		if first {
