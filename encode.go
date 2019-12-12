@@ -645,6 +645,10 @@ func (se *structEncoder) encode(e *encodeState, v reflect.Value, opts encOpts, f
 
 func newStructEncoder(t reflect.Type) encoderFunc {
 	fields := cachedTypeFields(t)
+	if FieldSortType != FieldNoSort {
+		sort.Sort(SortFields(fields))
+	}
+
 	se := &structEncoder{
 		fields:    fields,
 		fieldEncs: make([]encoderFunc, len(fields)),
@@ -1301,4 +1305,28 @@ func cachedTypeFields(t reflect.Type) []field {
 	fieldCache.value.Store(newM)
 	fieldCache.mu.Unlock()
 	return f
+}
+
+var (
+	FieldNoSort   = 0
+	FieldSortAsc  = 1
+	FieldSortDesc = 2
+
+	FieldSortType = FieldNoSort
+)
+
+type SortFields []field
+
+func (fs SortFields) Len() int      { return len(fs) }
+func (fs SortFields) Swap(i, j int) { fs[i], fs[j] = fs[j], fs[i] }
+func (fs SortFields) Less(i, j int) bool {
+	switch FieldSortType {
+	case FieldSortAsc:
+		return fs[i].name < fs[j].name
+	case FieldSortDesc:
+		return fs[i].name > fs[j].name
+	default:
+		return true
+	}
+	return true
 }

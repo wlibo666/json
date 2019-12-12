@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/wlibo666/json"
 	tmpMsg "github.com/wlibo666/json/example/msg"
 )
 
@@ -37,6 +38,40 @@ func TestBaseMsg() {
 	fmt.Printf("map data:%s\n", string(data))
 }
 
+type B struct {
+	Name string `json:"name"`
+	A01  int    `json:"a01"`
+	A10  string `json:"a10"`
+}
+
+type A struct {
+	Name string `json:"name"`
+	Age  int    `json:"age"`
+	T    B      `json:"b"`
+}
+
+func sortMarshal() {
+
+	a := A{
+		Name: "name",
+		Age:  30,
+		T: B{
+			Name: "b",
+			A01:  1,
+			A10:  "a10",
+		},
+	}
+	//json.FieldSortType = json.FieldSortDesc
+	json.FieldSortType = json.FieldSortAsc
+	data, err := json.Marshal(a)
+	if err != nil {
+		fmt.Printf("marshal failed,err:%s\n", err.Error())
+		return
+	}
+	fmt.Printf("data:%s\n", data)
+}
+
 func main() {
+	sortMarshal()
 	TestBaseMsg()
 }
